@@ -83,11 +83,28 @@ class HeaderRow extends React.Component {
 
   getSortableHeaderCell = (column) => {
     let sortDirection = (this.props.sortColumn === column.key) ? this.props.sortDirection : SortableHeaderCell.DEFINE_SORT.NONE;
-    let sortDescendingFirst = (column.sortDescendingFirst === undefined ) ? false : column.sortDescendingFirst;
-    return <SortableHeaderCell columnKey={column.key} onSort={this.props.onSort} sortDirection={sortDirection} sortDescendingFirst={sortDescendingFirst} headerRenderer={column.headerRenderer} />;
-  };
+    return <SortableHeaderCell columnKey={column.key} onSort={this.props.onSort} sortDirection={sortDirection}/>;
+  },
 
-  getHeaderRenderer = (column) => {
+  getCustomHeaderCell(column) {
+    let props = {};
+    if (this.getHeaderCellType(column) === HeaderCellType.SORTABLE) {
+      let sortDirection = (this.props.sortColumn === column.key) ? this.props.sortDirection : SortableHeaderCell.DEFINE_SORT.NONE;
+      props = {
+        onSort: this.props.onSort,
+        sortDirection: sortDirection
+      };
+    }
+    if (React.isValidElement(column.headerRenderer)) {
+      if (typeof column.headerRenderer.type === 'string') {
+        return column.headerRenderer;
+      }
+      return React.cloneElement(column.headerRenderer, props);
+    }
+    return column.headerRenderer(props);
+  },
+
+  getHeaderRenderer(column) {
     let renderer;
     if (column.headerRenderer && !column.sortable && !this.props.filterable) {
       renderer = column.headerRenderer;
