@@ -84,7 +84,7 @@ class HeaderRow extends React.Component {
   getSortableHeaderCell = (column) => {
     let sortDirection = (this.props.sortColumn === column.key) ? this.props.sortDirection : SortableHeaderCell.DEFINE_SORT.NONE;
     return <SortableHeaderCell columnKey={column.key} onSort={this.props.onSort} sortDirection={sortDirection}/>;
-  },
+  }
 
   getCustomHeaderCell(column) {
     let props = {};
@@ -102,7 +102,7 @@ class HeaderRow extends React.Component {
       return React.cloneElement(column.headerRenderer, props);
     }
     return column.headerRenderer(props);
-  },
+  }
 
   getHeaderRenderer(column) {
     let renderer;
@@ -122,7 +122,7 @@ class HeaderRow extends React.Component {
       }
     }
     return renderer;
-  };
+  }
 
   getStyle = (): HeaderRowStyle => {
     return {
@@ -131,7 +131,7 @@ class HeaderRow extends React.Component {
       height: this.props.height,
       position: 'absolute'
     };
-  };
+  }
 
   getCells = (): Array<HeaderCell> => {
     let cells = [];
@@ -164,7 +164,7 @@ class HeaderRow extends React.Component {
     }
 
     return cells.concat(lockedCells);
-  };
+  }
 
   setScrollLeft = (scrollLeft: number) => {
     this.props.columns.forEach( (column, i) => {
@@ -176,11 +176,11 @@ class HeaderRow extends React.Component {
         }
       }
     });
-  };
+  }
 
   getKnownDivProps = () => {
     return createObjectWithProperties(this.props, knownDivPropertyKeys);
-  };
+  }
 
   render(): ?ReactElement {
     let cellsStyle = {

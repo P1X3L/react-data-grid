@@ -9479,36 +9479,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.props.onRows(_this._currentRowsRange);
 	        _this._currentRowsRange = { start: 0, end: 0 };
 	      }
-	    }, _this.onScroll = function (e) {
-	      if (_this.canvas !== e.target) {
-	        return;
-	      }
-	      _this.appendScrollShim();
-	      var scrollLeft = e.target.scrollLeft;
-	      var scrollTop = e.target.scrollTop;
-	      var scroll = { scrollTop: scrollTop, scrollLeft: scrollLeft };
-	      _this._scroll = scroll;
-	      _this.props.onScroll(scroll);
-	    }, _this.getRows = function (displayStart, displayEnd) {
-	      _this._currentRowsRange = { start: displayStart, end: displayEnd };
-	      if (Array.isArray(_this.props.rowGetter)) {
-	        return _this.props.rowGetter.slice(displayStart, displayEnd);
-	      }
-	      var rows = [];
-	      var i = displayStart;
-	      while (i < displayEnd) {
-	        var row = _this.props.rowGetter(i);
-	        var subRowDetails = {};
-	        if (_this.props.getSubRowDetails) {
-	          subRowDetails = _this.props.getSubRowDetails(row);
-	        }
-	        rows.push({ row: row, subRowDetails: subRowDetails });
-	        i++;
-	      }
-	      return rows;
 	    }, _this.getScrollbarWidth = function () {
+	      var scrollbarWidth = 0;
 	      // Get the scrollbar width
-	      var scrollbarWidth = _this.canvas.offsetWidth - _this.canvas.clientWidth;
+	      scrollbarWidth = _this.canvas.offsetWidth - _this.canvas.clientWidth;
 	      return scrollbarWidth;
 	    }, _this.getScroll = function () {
 	      var _this$canvas = _this.canvas,
@@ -9595,7 +9569,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 
 	  Canvas.prototype.componentDidMount = function componentDidMount() {
+	    this.scrollingContent.style.width = this.gridCanvasElement.scrollWidth + 'px';
+	    this.scrollingContent.style.height = this.gridCanvasElement.scrollHeight + 'px';
 	    this.onRows();
+	    this.hoveredElement = null;
 	  };
 
 	  Canvas.prototype.componentWillReceiveProps = function componentWillReceiveProps(nextProps) {
@@ -9628,8 +9605,75 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.onRows();
 	  };
 
+	  Canvas.prototype.onScroll = function onScroll(e) {
+	    var hDiff = this.scrollingContent.offsetWidth - this.scrollingArea.offsetWidth;
+	    var vDiff = this.scrollingContent.offsetHeight - this.scrollingArea.offsetHeight;
+	    if (this.scrollingArea !== e.target || vDiff < 0 || hDiff < 0) {
+	      return;
+	    }
+	    var scrollLeft = e.target.scrollLeft > hDiff ? hDiff : e.target.scrollLeft;
+	    var scrollTop = e.target.scrollTop > vDiff ? vDiff : e.target.scrollTop;
+	    var scroll = { scrollTop: scrollTop, scrollLeft: scrollLeft };
+	    this._scroll = scroll;
+	    this.gridCanvasElement.scrollLeft = scrollLeft;
+	    this.gridCanvasElement.scrollTop = scrollTop;
+	    this.scrollingArea.style.transform = 'translate(' + scrollLeft + 'px, ' + scrollTop + 'px)';
+	    this.props.onScroll(scroll);
+	  };
+
+	  Canvas.prototype.onHover = function onHover(e) {
+	    var hoveredCell = this.getHoveredCell(e);
+	    var lastElement = this.hoveredElement;
+	    this.hoveredElement = hoveredCell ? hoveredCell : null;
+	    if (this.hoveredElement !== lastElement) {
+	      lastElement && lastElement.classList.remove('hover');
+	      this.hoveredElement && this.hoveredElement.classList.add('hover');
+	    }
+	    this.scrollingArea.style.cursor = hoveredCell ? window.getComputedStyle(hoveredCell).cursor : 'default';
+	  };
+
+	  Canvas.prototype.onMouseLeave = function onMouseLeave() {
+	    if (this.hoveredElement) {
+	      this.hoveredElement.classList.remove('hover');
+	      this.hoveredElement = null;
+	    }
+	  };
+
+	  Canvas.prototype.getRows = function getRows(displayStart, displayEnd) {
+	    this._currentRowsRange = { start: displayStart, end: displayEnd };
+	    if (Array.isArray(this.props.rowGetter)) {
+	      return this.props.rowGetter.slice(displayStart, displayEnd);
+	    }
+	    var rows = [];
+	    var i = displayStart;
+	    while (i < displayEnd) {
+	      var row = this.props.rowGetter(i);
+	      var subRowDetails = {};
+	      if (this.props.getSubRowDetails) {
+	        subRowDetails = this.props.getSubRowDetails(row);
+	      }
+	      rows.push({ row: row, subRowDetails: subRowDetails });
+	      i++;
+	    }
+	    return rows;
+	  };
+
+	  Canvas.prototype.getHoveredCell = function getHoveredCell(e) {
+	    return document.elementsFromPoint(e.clientX, e.clientY).find(function (node) {
+	      return node.classList.contains('react-grid-Cell');
+	    });
+	  };
+
+	  Canvas.prototype.getRealElement = function getRealElement(e) {
+	    var elements = document.elementsFromPoint(e.clientX, e.clientY);
+	    return elements[elements.findIndex(function (node) {
+	      return node.classList.contains('react-grid-Canvas-Scrolling-Area');
+	    }) + 1];
+	  };
+
 	  Canvas.prototype.render = function render() {
-	    var _this2 = this;
+	    var _this2 = this,
+	        _React$createElement;
 
 	    var _state = this.state,
 	        displayStart = _state.displayStart,
@@ -9677,22 +9721,54 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var style = {
 	      position: 'absolute',
 	      top: 0,
+	      right: 0,
 	      left: 0,
-	      overflowX: 'auto',
-	      overflowY: 'scroll',
-	      width: this.props.totalWidth,
+	      overflow: 'hidden',
 	      height: this.props.height
+	    };
+
+	    var scrollingAreaStyle = {
+	      position: 'absolute',
+	      top: 0,
+	      right: 0,
+	      bottom: 0,
+	      left: 0,
+	      overflow: 'auto',
+	      zIndex: 1
 	    };
 
 	    return React.createElement(
 	      'div',
-	      {
+	      (_React$createElement = {
 	        ref: function ref(div) {
 	          _this2.canvas = div;
 	        },
 	        style: style,
-	        onScroll: this.onScroll,
-	        className: joinClasses('react-grid-Canvas', this.props.className, { opaque: this.props.cellMetaData.selected && this.props.cellMetaData.selected.active }) },
+	        className: joinClasses('react-grid-Canvas', this.props.className, { opaque: this.props.cellMetaData.selected && this.props.cellMetaData.selected.active })
+	      }, _React$createElement['ref'] = function ref(div) {
+	        return _this2.gridCanvasElement = div;
+	      }, _React$createElement),
+	      React.createElement(
+	        'div',
+	        {
+	          style: scrollingAreaStyle,
+	          className: 'react-grid-Canvas-Scrolling-Area',
+	          ref: function ref(div) {
+	            return _this2.scrollingArea = div;
+	          },
+	          onScroll: this.onScroll,
+	          onMouseMove: this.onHover,
+	          onMouseOut: this.onMouseLeave,
+	          onClick: function onClick(e) {
+	            _this2.getRealElement(e).click();
+	          }
+	        },
+	        React.createElement('div', {
+	          ref: function ref(div) {
+	            return _this2.scrollingContent = div;
+	          }
+	        })
+	      ),
 	      React.createElement(_RowsContainer2['default'], {
 	        width: this.props.width,
 	        rows: rows,
@@ -10772,26 +10848,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return React.createElement(FilterRenderer, _extends({}, _this.props, { onChange: _this.props.onFilterChange }));
 	    }, _this.getSortableHeaderCell = function (column) {
 	      var sortDirection = _this.props.sortColumn === column.key ? _this.props.sortDirection : SortableHeaderCell.DEFINE_SORT.NONE;
-	      var sortDescendingFirst = column.sortDescendingFirst === undefined ? false : column.sortDescendingFirst;
-	      return React.createElement(SortableHeaderCell, { columnKey: column.key, onSort: _this.props.onSort, sortDirection: sortDirection, sortDescendingFirst: sortDescendingFirst, headerRenderer: column.headerRenderer });
-	    }, _this.getHeaderRenderer = function (column) {
-	      var renderer = void 0;
-	      if (column.headerRenderer && !column.sortable && !_this.props.filterable) {
-	        renderer = column.headerRenderer;
-	      } else {
-	        var headerCellType = _this.getHeaderCellType(column);
-	        switch (headerCellType) {
-	          case HeaderCellType.SORTABLE:
-	            renderer = _this.getSortableHeaderCell(column);
-	            break;
-	          case HeaderCellType.FILTERABLE:
-	            renderer = _this.getFilterableHeaderCell(column);
-	            break;
-	          default:
-	            break;
-	        }
-	      }
-	      return renderer;
+	      return React.createElement(SortableHeaderCell, { columnKey: column.key, onSort: _this.props.onSort, sortDirection: sortDirection });
 	    }, _this.getStyle = function () {
 	      return {
 	        overflow: 'hidden',
@@ -10856,6 +10913,44 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  HeaderRow.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
 	    return nextProps.width !== this.props.width || nextProps.height !== this.props.height || nextProps.columns !== this.props.columns || !shallowEqual(nextProps.style, this.props.style) || this.props.sortColumn !== nextProps.sortColumn || this.props.sortDirection !== nextProps.sortDirection;
+	  };
+
+	  HeaderRow.prototype.getCustomHeaderCell = function getCustomHeaderCell(column) {
+	    var props = {};
+	    if (this.getHeaderCellType(column) === HeaderCellType.SORTABLE) {
+	      var sortDirection = this.props.sortColumn === column.key ? this.props.sortDirection : SortableHeaderCell.DEFINE_SORT.NONE;
+	      props = {
+	        onSort: this.props.onSort,
+	        sortDirection: sortDirection
+	      };
+	    }
+	    if (React.isValidElement(column.headerRenderer)) {
+	      if (typeof column.headerRenderer.type === 'string') {
+	        return column.headerRenderer;
+	      }
+	      return React.cloneElement(column.headerRenderer, props);
+	    }
+	    return column.headerRenderer(props);
+	  };
+
+	  HeaderRow.prototype.getHeaderRenderer = function getHeaderRenderer(column) {
+	    var renderer = void 0;
+	    if (column.headerRenderer && !column.sortable && !this.props.filterable) {
+	      renderer = column.headerRenderer;
+	    } else {
+	      var headerCellType = this.getHeaderCellType(column);
+	      switch (headerCellType) {
+	        case HeaderCellType.SORTABLE:
+	          renderer = this.getSortableHeaderCell(column);
+	          break;
+	        case HeaderCellType.FILTERABLE:
+	          renderer = this.getFilterableHeaderCell(column);
+	          break;
+	        default:
+	          break;
+	      }
+	    }
+	    return renderer;
 	  };
 
 	  HeaderRow.prototype.render = function render() {

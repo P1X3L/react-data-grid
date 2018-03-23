@@ -182,7 +182,7 @@ class Canvas extends React.Component {
       this.props.onRows(this._currentRowsRange);
       this._currentRowsRange = { start: 0, end: 0 };
     }
-  };
+  }
 
   onScroll(e: any) {
     let hDiff = this.scrollingContent.offsetWidth - this.scrollingArea.offsetWidth;
@@ -196,7 +196,7 @@ class Canvas extends React.Component {
     this.gridCanvasElement.scrollTop = scrollTop;
     this.scrollingArea.style.transform = `translate(${scrollLeft}px, ${scrollTop}px)`;
     this.props.onScroll(scroll);
-  };
+  }
 
   onHover(e) {
     let hoveredCell = this.getHoveredCell(e);
@@ -207,14 +207,14 @@ class Canvas extends React.Component {
       this.hoveredElement && this.hoveredElement.classList.add('hover');
     }
     this.scrollingArea.style.cursor = hoveredCell ? window.getComputedStyle(hoveredCell).cursor : 'default';
-  },
+  }
 
   onMouseLeave() {
     if (this.hoveredElement) {
       this.hoveredElement.classList.remove('hover');
       this.hoveredElement = null;
     }
-  },
+  }
 
   getRows(displayStart, displayEnd) {
     this._currentRowsRange = { start: displayStart, end: displayEnd };
@@ -233,32 +233,32 @@ class Canvas extends React.Component {
       i++;
     }
     return rows;
-  };
+  }
 
   getHoveredCell(e) {
     return document.elementsFromPoint(e.clientX, e.clientY).find(function(node) {
       return node.classList.contains('react-grid-Cell');
     });
-  },
+  }
 
   getRealElement(e) {
     let elements = document.elementsFromPoint(e.clientX, e.clientY);
     return elements[elements.findIndex(node => {
       return node.classList.contains('react-grid-Canvas-Scrolling-Area');
     }) + 1 ];
-  },
+  }
 
   getScrollbarWidth = () => {
     let scrollbarWidth = 0;
     // Get the scrollbar width
-    const scrollbarWidth = this.canvas.offsetWidth - this.canvas.clientWidth;
+    scrollbarWidth = this.canvas.offsetWidth - this.canvas.clientWidth;
     return scrollbarWidth;
-  };
+  }
 
   getScroll = () => {
     const { scrollTop, scrollLeft } = this.canvas;
     return { scrollTop, scrollLeft };
-  };
+  }
 
   isRowSelected = (idx, row) => {
     // Use selectedRows if set
@@ -277,7 +277,7 @@ class Canvas extends React.Component {
     }
 
     return false;
-  };
+  }
 
   setScrollLeft = (scrollLeft) => {
     if (this._currentRowsLength !== 0) {
@@ -291,7 +291,7 @@ class Canvas extends React.Component {
         }
       }
     }
-  };
+  }
 
   getRowByRef = (i) => {
     // check if wrapped with React DND drop target
@@ -300,7 +300,7 @@ class Canvas extends React.Component {
       return wrappedRow.row;
     }
     return this.rows[i];
-  };
+  }
 
   renderRow = (props: any) => {
     let row = props.row;
@@ -322,7 +322,7 @@ class Canvas extends React.Component {
     if (React.isValidElement(this.props.rowRenderer)) {
       return React.cloneElement(this.props.rowRenderer, props);
     }
-  };
+  }
 
   renderPlaceholder = (key: string, height: number) => {
     // just renders empty cells
@@ -335,7 +335,7 @@ class Canvas extends React.Component {
       }
     </div >
     );
-  };
+  }
 
   render() {
     const { displayStart, displayEnd } = this.state;
