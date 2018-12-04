@@ -199,9 +199,7 @@ class Row extends React.Component {
     );
 
     let style = {
-      height: this.getRowHeight(this.props),
-      overflow: 'hidden',
-      contain: 'layout'
+      height: this.getRowHeight(this.props)
     };
 
     let cells = this.getCells();

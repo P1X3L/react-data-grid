@@ -187,7 +187,9 @@ class Canvas extends React.Component {
   onScroll = (e: any) => {
     let hDiff = this.scrollingContent.offsetWidth - this.scrollingArea.offsetWidth;
     let vDiff = this.scrollingContent.offsetHeight - this.scrollingArea.offsetHeight;
-    if (this.scrollingArea !== e.target || vDiff < 0 || hDiff < 0 ) { return; }
+    hDiff = hDiff < 0 ? 0 : hDiff;
+    vDiff = vDiff < 0 ? 0 : vDiff;
+    if (this.scrollingArea !== e.target) { return; }
     let scrollLeft = e.target.scrollLeft > hDiff ? hDiff : e.target.scrollLeft;
     let scrollTop = e.target.scrollTop > vDiff ? vDiff : e.target.scrollTop;
     let scroll = { scrollTop, scrollLeft };
